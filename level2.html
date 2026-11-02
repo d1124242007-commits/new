@@ -7,8 +7,7 @@
   <style>
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
     }
     body {
@@ -17,6 +16,7 @@
       user-select: none;
     }
 
+    /* 頂部控制列 */
     header {
       position: absolute;
       top: 0; left: 0;
@@ -32,160 +32,162 @@
       font-size: 24px;
       font-weight: bold;
       color: #2b6cb0;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       padding: 8px 20px;
       border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       backdrop-filter: blur(5px);
     }
-    .score-board {
-      font-size: 20px;
+    .status-bar {
+      display: flex;
+      gap: 15px;
+    }
+    .info-box {
+      font-size: 18px;
       font-weight: bold;
       color: #2c5282;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 8px 18px;
       border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     #amusement-park {
       position: relative;
       width: 100vw;
       height: 100vh;
-      background: linear-gradient(to bottom, #bae6fd 0%, #e0f2fe 50%, #86efac 100%);
+      background: linear-gradient(to bottom, #93c5fd 0%, #e0f2fe 45%, #4ade80 100%);
     }
 
-    /* 摩天輪發光動畫 */
+    /* 遊樂設施與背景氣球 */
     .ferris-wheel {
       position: absolute;
-      top: 15%;
-      left: 10%;
-      width: 150px;
-      height: 150px;
-      border: 6px dashed #f472b6;
+      top: 12%; left: 8%;
+      width: 160px; height: 160px;
+      border: 6px dashed #ec4899;
       border-radius: 50%;
-      animation: spin 20s linear infinite;
-      box-shadow: 0 0 20px rgba(244, 114, 182, 0.5);
+      animation: spin 18s linear infinite;
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.5);
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
     /* 七彩動態花朵 */
     .flower {
       position: absolute;
-      width: 65px;
-      height: 65px;
+      width: 70px; height: 70px;
       cursor: pointer;
-      transition: transform 0.3s;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       animation: float 3s ease-in-out infinite;
     }
     .flower:hover {
-      transform: scale(1.3) rotate(15deg);
-      filter: drop-shadow(0 0 15px #fff);
+      transform: scale(1.35) rotate(15deg);
+      filter: drop-shadow(0 0 20px #fff);
     }
     .flower.visited {
-      opacity: 0.5;
+      opacity: 0.4;
       filter: grayscale(0.8);
       cursor: default;
+      animation: none;
     }
     @keyframes float {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      50% { transform: translateY(-12px); }
     }
     .flower-petals {
       position: absolute;
       width: 100%; height: 100%;
-      background: #ff70a6;
+      background: #f43f5e;
       border-radius: 50%;
-      box-shadow: 0 0 0 10px #ff9770, 0 0 0 20px #ffd670;
+      box-shadow: 0 0 0 12px #fb923c, 0 0 0 24px #facc15;
     }
     .flower-center {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 25px; height: 25px;
+      width: 28px; height: 28px;
       background: #fff;
       border-radius: 50%;
       z-index: 2;
     }
 
+    /* 彈窗 UI */
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(5px);
       justify-content: center;
       align-items: center;
       z-index: 100;
     }
     .modal-content {
       background: #fff;
-      width: 90%;
-      max-width: 680px;
-      padding: 25px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      width: 92%; max-width: 720px;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
       text-align: center;
-      animation: popIn 0.3s ease;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     @keyframes popIn {
-      from { transform: scale(0.8); opacity: 0; }
+      from { transform: scale(0.7); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
     .cards-pool {
       display: flex;
-      gap: 12px;
+      gap: 15px;
       justify-content: center;
-      margin: 15px 0;
-      min-height: 80px;
+      margin: 20px 0;
+      min-height: 90px;
     }
     .drag-card {
       background: #e0f2fe;
       border: 2px dashed #0284c7;
       color: #0369a1;
-      padding: 12px 16px;
-      border-radius: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 15px;
       cursor: grab;
       width: 48%;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.2s;
     }
-    .drag-card:hover { transform: scale(1.02); }
-    .drag-card:active { cursor: grabbing; transform: scale(0.98); }
+    .drag-card:hover { transform: translateY(-3px); }
+    .drag-card:active { cursor: grabbing; transform: scale(0.96); }
 
     .drop-zones {
       display: flex;
-      gap: 15px;
+      gap: 20px;
       margin-top: 15px;
     }
     .drop-zone {
       flex: 1;
-      min-height: 140px;
+      min-height: 160px;
       border: 3px dashed #cbd5e1;
-      border-radius: 15px;
-      padding: 12px;
+      border-radius: 18px;
+      padding: 15px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      transition: background 0.3s, border-color 0.3s;
+      gap: 10px;
+      transition: all 0.3s;
     }
     .zone-equal { background: #f0fdf4; border-color: #22c55e; }
     .zone-unequal { background: #fef2f2; border-color: #ef4444; }
 
     .action-btn {
-      padding: 12px 30px;
+      padding: 12px 32px;
       font-size: 18px;
       font-weight: bold;
       color: white;
       border: none;
       border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       transition: transform 0.2s;
       text-decoration: none;
       display: inline-block;
@@ -194,27 +196,30 @@
     .btn-submit { background: #3b82f6; }
     .btn-retry { background: #f59e0b; }
     .btn-cert { background: #10b981; }
-    .action-btn:hover { transform: scale(1.05); }
+    .action-btn:hover { transform: scale(1.08); }
 
-    /* 彩花粒子 */
+    /* 動態粒子與特效 */
     .particle {
       position: absolute;
-      width: 8px; height: 8px;
+      width: 10px; height: 10px;
       border-radius: 50%;
       pointer-events: none;
-      animation: particleFall 1.5s ease-out forwards;
+      animation: particleFall 1.2s ease-out forwards;
     }
     @keyframes particleFall {
-      0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
-      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(360deg); }
+      0% { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="header-title">SDGs性別平權-情境題</div>
-    <div class="score-board">答對題數：<span id="score">0</span> / 6</div>
+    <div class="header-title">SDGs性別平權-情境題 (升級版)</div>
+    <div class="status-bar">
+      <div class="info-box">⏱ 剩餘時間：<span id="timer" style="color:#e53e3e;">60</span> 秒</div>
+      <div class="info-box">答對題數：<span id="score" style="color:#2b6cb0;">0</span> / 8</div>
+    </div>
   </header>
 
   <div id="amusement-park">
@@ -223,14 +228,14 @@
 
   <div id="drag-modal" class="modal">
     <div class="modal-content">
-      <h3 style="color: #1e293b; font-size: 20px;">請將下列行為拖拽放至正確分類框中</h3>
+      <h3 style="color: #1e293b; font-size: 22px;">請將下列情境拖拽至正確區塊中</h3>
       <div id="cards-container" class="cards-pool"></div>
       <div class="drop-zones">
         <div class="drop-zone zone-equal" ondragover="allowDrop(event)" ondrop="drop(event, 'equal')">
-          <h4 style="color: #15803d;">性別平等 ✅</h4>
+          <h4 style="color: #15803d; font-size: 18px;">性別平等 ✅</h4>
         </div>
         <div class="drop-zone zone-unequal" ondragover="allowDrop(event)" ondrop="drop(event, 'unequal')">
-          <h4 style="color: #b91c1c;">性別不平等 / 偏見 ❌</h4>
+          <h4 style="color: #b91c1c; font-size: 18px;">性別不平等 / 偏見 ❌</h4>
         </div>
       </div>
       <button id="submit-group-btn" class="action-btn btn-submit" onclick="submitGroup()" style="display:none;">確認送出</button>
@@ -239,26 +244,43 @@
 
   <div id="result-modal" class="modal">
     <div class="modal-content">
-      <h2 id="result-badge" style="font-size: 32px; margin-bottom: 10px;">結算中...</h2>
+      <h2 id="result-badge" style="font-size: 34px; margin-bottom: 12px;">結算中...</h2>
       <p id="result-msg" style="font-size: 18px; color: #475569; margin-bottom: 20px;"></p>
       <div id="result-action"></div>
     </div>
   </div>
 
   <script>
+    // 4 個題組（每組 2 題，共 8 題）
     const topicGroups = [
-      { id: 0, cards: [{ id: "c1", text: "家事與照顧家人應由全家依能力共同分擔", type: "equal" }, { id: "c2", text: "女生數理能力比較差，選文組比較適合", type: "unequal" }] },
-      { id: 1, cards: [{ id: "c3", text: "不論男女，任何人表達難過與情緒都是正常的", type: "equal" }, { id: "c4", text: "男性體力較好，不適合擔任幼兒園老師或護理師", type: "unequal" }] },
-      { id: 2, cards: [{ id: "c5", text: "公司升遷與薪資應依工作能力而非性別決定", type: "equal" }, { id: "c6", text: "男生的玩具只能選汽車，女生只能選娃娃", type: "unequal" }] }
+      { id: 0, cards: [{ id: "c1", text: "家事與照顧家人應由全家依能力分擔", type: "equal" }, { id: "c2", text: "女生數理能力較差，選文組比較適合", type: "unequal" }] },
+      { id: 1, cards: [{ id: "c3", text: "不論男女，任何人表達脆弱都是正常的", type: "equal" }, { id: "c4", text: "男性不適合擔任幼兒園老師或照顧嬰兒", type: "unequal" }] },
+      { id: 2, cards: [{ id: "c5", text: "公司升遷與薪資應依工作能力而非性別決定", type: "equal" }, { id: "c6", text: "男生的玩具只能選汽車，女生只能選娃娃", type: "unequal" }] },
+      { id: 3, cards: [{ id: "c7", text: "爸爸媽媽均享有相同的育嬰假申請權益", type: "equal" }, { id: "c8", text: "女性婚後應該辭職專心在家相夫教子", type: "unequal" }] }
     ];
 
     let currentGroupIdx = -1;
     let correctCount = 0;
     let completedGroups = 0;
+    let timeLeft = 60;
+    let timerInterval = null;
     const currentAssignments = {};
 
     const park = document.getElementById('amusement-park');
     const scoreElem = document.getElementById('score');
+    const timerElem = document.getElementById('timer');
+
+    // 啟動倒數計時器
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerElem.innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          showFinalEvaluation(true); // 時間到強制結算
+        }
+      }, 1000);
+    }
 
     function initFlowers() {
       topicGroups.forEach((group, idx) => {
@@ -266,18 +288,19 @@
         flower.className = 'flower';
         flower.id = `flower-${idx}`;
         const randomTop = Math.floor(Math.random() * 25) + 55;
-        const randomLeft = Math.floor(Math.random() * 65) + 15;
+        const randomLeft = Math.floor(Math.random() * 70) + 12;
         flower.style.top = randomTop + '%';
         flower.style.left = randomLeft + '%';
         flower.innerHTML = `<div class="flower-petals"></div><div class="flower-center"></div>`;
         flower.onclick = () => openGroupModal(idx);
         park.appendChild(flower);
       });
+      startTimer();
     }
 
     function openGroupModal(idx) {
       const flowerElem = document.getElementById(`flower-${idx}`);
-      if (flowerElem.classList.contains('visited')) return;
+      if (flowerElem.classList.contains('visited') || timeLeft <= 0) return;
 
       currentGroupIdx = idx;
       const groupData = topicGroups[idx];
@@ -325,16 +348,16 @@
     }
 
     function spawnParticles(x, y) {
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 15; i++) {
         const p = document.createElement('div');
         p.className = 'particle';
         p.style.left = x + 'px';
         p.style.top = y + 'px';
-        p.style.background = ['#ff70a6', '#ffd670', '#3b82f6', '#10b981'][Math.floor(Math.random()*4)];
-        p.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
-        p.style.setProperty('--dy', (Math.random() * 120 - 60) + 'px');
+        p.style.background = ['#f43f5e', '#fb923c', '#3b82f6', '#22c55e'][Math.floor(Math.random()*4)];
+        p.style.setProperty('--dx', (Math.random() * 140 - 70) + 'px');
+        p.style.setProperty('--dy', (Math.random() * 140 - 70) + 'px');
         document.body.appendChild(p);
-        setTimeout(() => p.remove(), 1500);
+        setTimeout(() => p.remove(), 1200);
       }
     }
 
@@ -351,10 +374,14 @@
       completedGroups++;
       for (let key in currentAssignments) delete currentAssignments[key];
 
-      if (completedGroups === 3) setTimeout(showFinalEvaluation, 500);
+      if (completedGroups === 4) {
+        clearInterval(timerInterval);
+        setTimeout(() => showFinalEvaluation(false), 500);
+      }
     }
 
-    function showFinalEvaluation() {
+    function showFinalEvaluation(isTimeOut) {
+      document.getElementById('drag-modal').style.display = 'none';
       const modal = document.getElementById('result-modal');
       const badge = document.getElementById('result-badge');
       const msg = document.getElementById('result-msg');
@@ -362,17 +389,21 @@
 
       modal.style.display = 'flex';
 
-      if (correctCount <= 3) {
-        badge.innerText = "等級：再加油 💡";
-        msg.innerText = `您答對了 ${correctCount} / 6 題。別灰心，重新再試一次挑戰更高分吧！`;
+      if (isTimeOut) {
+        badge.innerText = "時間到！⏰";
+        msg.innerText = `很遺憾，時間已結束！您答對了 ${correctCount} / 8 題，再試一次挑戰更快的速度吧！`;
         actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
       } else if (correctCount <= 5) {
+        badge.innerText = "等級：再加油 💡";
+        msg.innerText = `您答對了 ${correctCount} / 8 題。別灰心，多加練習就能突破難關！`;
+        actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
+      } else if (correctCount <= 7) {
         badge.innerText = "等級：進步中 👍";
-        msg.innerText = `您答對了 ${correctCount} / 6 題，觀念越來越清晰囉！`;
+        msg.innerText = `您答對了 ${correctCount} / 8 題，表現相當優異！就差最後一步拿到滿分了！`;
         actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
       } else {
         badge.innerText = "等級：平權達人 🏆";
-        msg.innerText = `太完美了！您全數答對 6 題！成功榮獲「SDGs 性別平權小達人」稱號！`;
+        msg.innerText = `完美通關！您在限時內全數答對 8 題！成功榮獲「SDGs 性別平權小達人」稱號！`;
         actionArea.innerHTML = `<a href="certificate.html" class="action-btn btn-cert">下載學習證書</a>`;
       }
     }
