@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDGs性別平權 - 劉芳君</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+    body {
+      background: #eef7e8;
+      overflow: hidden;
+      user-select: none;
+    }
+    /* 頁首 UI */
+    header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .header-title {
+      font-size: 26px;
+      font-weight: bold;
+      color: #2e5d32;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .score-board {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1b4332;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* 遊戲畫布與地圖 */
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(to bottom, #87ceeb 0%, #c8e6c9 40%, #a5d6a7 100%);
+    }
+    .path {
+      position: absolute;
+      width: 80%;
+      height: 70%;
+      top: 15%;
+      left: 10%;
+      border: 8px dashed #d7ccc8;
+      border-radius: 50px;
+      pointer-events: none;
+    }
+
+    /* 茅草屋風格 */
+    .house {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      cursor: pointer;
+      transition: transform 0.2s, filter 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .house:hover {
+      transform: scale(1.15);
+      filter: drop-shadow(0 0 10px #fff);
+    }
+    .house.completed {
+      opacity: 0.6;
+      filter: grayscale(0.5);
+      cursor: default;
+    }
+    .house-icon {
+      width: 70px;
+      height: 60px;
+      background: #8d6e63;
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    /* 茅草屋頂 */
+    .house-icon::before {
+      content: "";
+      position: absolute;
+      top: -30px;
+      left: -15px;
+      width: 0;
+      height: 0;
+      border-left: 50px solid transparent;
+      border-right: 50px solid transparent;
+      border-bottom: 35px solid #d7ccc8;
+    }
+    /* 屋門 */
+    .house-icon::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 25px;
+      width: 20px;
+      height: 30px;
+      background: #4e342e;
+      border-radius: 4px 4px 0 0;
+    }
+    .house-label {
+      background: #2e5d32;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+
+    /* Modal 彈窗通用樣式 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #fff;
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .question-title {
+      font-size: 20px;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .option-btn {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #f0f4f8;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option-btn:hover {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+    }
+
+    /* 結算按鈕樣式 */
+    .action-btn {
+      padding: 12px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 15px;
+    }
+    .btn-retry { background: #e53e3e; }
+    .btn-next { background: #38a169; }
+    .action-btn:hover { transform: scale(1.05); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">SDGs性別平權</div>
+    <div class="score-board">答對題數：<span id="score">0</span> / 10</div>
+  </header>
+
+  <div id="game-container">
+    <div class="path"></div>
+    <!-- 10 座茅草屋將由 JS 動態生成 -->
+  </div>
+
+  <!-- 答題 Modal -->
+  <div id="quiz-modal" class="modal">
+    <div class="modal-content">
+      <div id="quiz-question" class="question-title">題目載入中...</div>
+      <div id="quiz-options" class="options-grid"></div>
+    </div>
+  </div>
+
+  <!-- 結算 Modal -->
+  <div id="result-modal" class="modal">
+    <div class="modal-content">
+      <h2 id="result-title" style="font-size: 28px; margin-bottom: 15px;">挑戰結果</h2>
+      <p id="result-msg" style="font-size: 18px; color: #4a5568; margin-bottom: 20px;"></p>
+      <div id="result-action"></div>
+    </div>
+  </div>
+
+  <script>
+    // 10 題 SDGs 性別平權選擇題
+    const questions = [
+      { q: "1. 關於家庭家務分工，下列哪種觀念最符合性別平權？", options: ["家務是女性的責任", "依成員能力與時間共同分擔", "男性只負責賺錢", "小孩的事全由媽媽決定"], ans: 1 },
+      { q: "2. 在職場上，薪資待遇應該依據什麼評定？", options: ["性別", "工作表現與能力", "婚姻狀況", "家庭背景"], ans: 1 },
+      { q: "3. 選擇職業與科系時，應該以什麼為優先考量？", options: ["個人興趣與能力", "傳統社會對性別的刻板印象", "長輩對特定性別的期待", "大眾對男女職業的偏見"], ans: 0 },
+      { q: "4. 聯合國永續發展目標（SDGs）中，實現性別平權是第幾項目標？", options: ["SDG 3", "SDG 4", "SDG 5", "SDG 8"], ans: 2 },
+      { q: "5. 看到男同學想學裁縫、女同學想踢足球時，我們應該？", options: ["嘲笑他們", "阻止他們進行", "鼓勵並尊重個人選擇", "無視他們"], ans: 2 },
+      { q: "6. 何者屬於打破「性別刻板印象」的行為？", options: ["認為男生不能哭泣", "覺得女生不需要精通數理", "支持男性擔任護理師與幼教老師", "限制女生的運動選擇"], ans: 2 },
+      { q: "7. 在學校或社區進行決策討論時，應如何確保性別平權？", options: ["讓多元性別都有平等發言與參與機會", "只聽取某特定性別的意見", "以體力強弱決定發言順序", "排除少數意見"], ans: 0 },
+      { q: "8. 關於育嬰假（親職假）的申請，下列敘述何者正確？", options: ["只有媽媽可以申請", "爸爸與媽媽都有權利申請", "只有爸爸可以申請", "未婚者才能申請"], ans: 1 },
+      { q: "9. 「情緒表達」與性別的關係為何？", options: ["只有女生可以表達脆弱", "男生表達難過是懦弱表現", "所有人都有表達喜怒哀樂的權利", "情緒與性別有絕對正相關"], ans: 2 },
+      { q: "10. 推動性別平權的主要目的為何？", options: ["讓特定性別獲得更多特權", "消弭性別歧視，保障每個人平等發展的權利", "限制男性的發展空間", "取代傳統文化的所有習慣"], ans: 1 }
+    ];
+
+    // 茅草屋在地圖上的佈局位置 (%)
+    const positions = [
+      { top: 15, left: 15 }, { top: 12, left: 45 }, { top: 18, left: 75 },
+      { top: 40, left: 80 }, { top: 65, left: 70 }, { top: 75, left: 45 },
+      { top: 70, left: 20 }, { top: 45, left: 12 }, { top: 42, left: 42 },
+      { top: 58, left: 55 }
+    ];
+
+    let correctCount = 0;
+    let answeredCount = 0;
+    const answeredMap = new Array(10).fill(false);
+
+    const container = document.getElementById('game-container');
+    const scoreElem = document.getElementById('score');
+
+    // 初始化村莊地圖中的 10 座茅草屋
+    positions.forEach((pos, idx) => {
+      const house = document.createElement('div');
+      house.className = 'house';
+      house.style.top = pos.top + '%';
+      house.style.left = pos.left + '%';
+      house.id = `house-${idx}`;
+      house.innerHTML = `
+        <div class="house-icon"></div>
+        <div class="house-label">茅草屋 ${idx + 1}</div>
+      `;
+      house.onclick = () => openQuiz(idx);
+      container.appendChild(house);
+    });
+
+    // 開啟答題 Modal
+    function openQuiz(idx) {
+      if (answeredMap[idx]) return;
+
+      const qData = questions[idx];
+      document.getElementById('quiz-question').innerText = qData.q;
+      const optionsDiv = document.getElementById('quiz-options');
+      optionsDiv.innerHTML = '';
+
+      qData.options.forEach((opt, optIdx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(idx, optIdx);
+        optionsDiv.appendChild(btn);
+      });
+
+      document.getElementById('quiz-modal').style.display = 'flex';
+    }
+
+    // 檢查答案
+    function checkAnswer(houseIdx, selectedOptIdx) {
+      document.getElementById('quiz-modal').style.display = 'none';
+      answeredMap[houseIdx] = true;
+      answeredCount++;
+
+      // 標示房屋已完成
+      const houseElem = document.getElementById(`house-${houseIdx}`);
+      houseElem.classList.add('completed');
+
+      if (selectedOptIdx === questions[houseIdx].ans) {
+        correctCount++;
+        scoreElem.innerText = correctCount;
+      }
+
+      // 檢查是否全部作答完畢
+      if (answeredCount === 10) {
+        setTimeout(showFinalResult, 500);
+      }
+    }
+
+    // 顯示結算畫面
+    function showFinalResult() {
+      const resultModal = document.getElementById('result-modal');
+      const title = document.getElementById('result-title');
+      const msg = document.getElementById('result-msg');
+      const actionArea = document.getElementById('result-action');
+
+      resultModal.style.display = 'flex';
+
+      if (correctCount < 8) {
+        title.innerText = "挑戰失敗";
+        msg.innerText = `您答對了 ${correctCount} 題（未達 8 題標竿）。請重新複習性別平權知識並再試一次！`;
+        actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">重新挑戰</button>`;
+      } else {
+        title.innerText = "🎉 恭喜通關！";
+        msg.innerText = `太棒了！您成功答對 ${correctCount} 題，完全掌握了性別平權的觀念！`;
+        actionArea.innerHTML = `<a href="level2.html" class="action-btn btn-next">前往下一關</a>`;
+      }
+    }
+  </script>
+</body>
+</html>
