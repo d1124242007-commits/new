@@ -17,11 +17,9 @@
       user-select: none;
     }
 
-    /* 頁首 UI */
     header {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       width: 100%;
       display: flex;
       justify-content: space-between;
@@ -38,6 +36,7 @@
       padding: 8px 20px;
       border-radius: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      backdrop-filter: blur(5px);
     }
     .score-board {
       font-size: 20px;
@@ -49,7 +48,6 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* 遊樂園背景畫布 */
     #amusement-park {
       position: relative;
       width: 100vw;
@@ -57,7 +55,7 @@
       background: linear-gradient(to bottom, #bae6fd 0%, #e0f2fe 50%, #86efac 100%);
     }
 
-    /* 遊樂設施裝飾 */
+    /* 摩天輪發光動畫 */
     .ferris-wheel {
       position: absolute;
       top: 15%;
@@ -67,32 +65,11 @@
       border: 6px dashed #f472b6;
       border-radius: 50%;
       animation: spin 20s linear infinite;
+      box-shadow: 0 0 20px rgba(244, 114, 182, 0.5);
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-    .ferris-wheel::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 120px;
-      background: #94a3b8;
-      transform: translate(-50%, 0) rotate(25deg);
-      transform-origin: top;
-    }
 
-    .carousel-ride {
-      position: absolute;
-      top: 25%;
-      right: 12%;
-      width: 140px;
-      height: 90px;
-      background: #fde047;
-      border-radius: 45px 45px 0 0;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-
-    /* 花朵樣式 (隨機定位於下半部) */
+    /* 七彩動態花朵 */
     .flower {
       position: absolute;
       width: 65px;
@@ -102,7 +79,8 @@
       animation: float 3s ease-in-out infinite;
     }
     .flower:hover {
-      transform: scale(1.25) rotate(10deg);
+      transform: scale(1.3) rotate(15deg);
+      filter: drop-shadow(0 0 15px #fff);
     }
     .flower.visited {
       opacity: 0.5;
@@ -111,35 +89,32 @@
     }
     @keyframes float {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-10px); }
     }
     .flower-petals {
       position: absolute;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       background: #ff70a6;
       border-radius: 50%;
       box-shadow: 0 0 0 10px #ff9770, 0 0 0 20px #ffd670;
     }
     .flower-center {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 25px;
-      height: 25px;
+      width: 25px; height: 25px;
       background: #fff;
       border-radius: 50%;
       z-index: 2;
     }
 
-    /* Modal 彈窗與拖拽分類介面 */
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
       justify-content: center;
       align-items: center;
       z-index: 100;
@@ -159,7 +134,6 @@
       to { transform: scale(1); opacity: 1; }
     }
 
-    /* 拖拽卡片與容器 */
     .cards-pool {
       display: flex;
       gap: 12px;
@@ -178,8 +152,10 @@
       cursor: grab;
       width: 48%;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    .drag-card:active { cursor: grabbing; }
+    .drag-card:hover { transform: scale(1.02); }
+    .drag-card:active { cursor: grabbing; transform: scale(0.98); }
 
     .drop-zones {
       display: flex;
@@ -196,13 +172,11 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      transition: background 0.2s;
+      transition: background 0.3s, border-color 0.3s;
     }
     .zone-equal { background: #f0fdf4; border-color: #22c55e; }
     .zone-unequal { background: #fef2f2; border-color: #ef4444; }
-    .drop-zone h4 { font-size: 16px; margin-bottom: 5px; }
 
-    /* 按鈕樣式 */
     .action-btn {
       padding: 12px 30px;
       font-size: 18px;
@@ -221,6 +195,19 @@
     .btn-retry { background: #f59e0b; }
     .btn-cert { background: #10b981; }
     .action-btn:hover { transform: scale(1.05); }
+
+    /* 彩花粒子 */
+    .particle {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particleFall 1.5s ease-out forwards;
+    }
+    @keyframes particleFall {
+      0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -232,19 +219,12 @@
 
   <div id="amusement-park">
     <div class="ferris-wheel"></div>
-    <div class="carousel-ride"></div>
-    <!-- 3 朵花朵將由 JS 動態生成於下半部 -->
   </div>
 
-  <!-- 拖拽題組 Modal -->
   <div id="drag-modal" class="modal">
     <div class="modal-content">
       <h3 style="color: #1e293b; font-size: 20px;">請將下列行為拖拽放至正確分類框中</h3>
-      
-      <!-- 待拖拽卡片 -->
       <div id="cards-container" class="cards-pool"></div>
-
-      <!-- 放置區域 -->
       <div class="drop-zones">
         <div class="drop-zone zone-equal" ondragover="allowDrop(event)" ondrop="drop(event, 'equal')">
           <h4 style="color: #15803d;">性別平等 ✅</h4>
@@ -253,12 +233,10 @@
           <h4 style="color: #b91c1c;">性別不平等 / 偏見 ❌</h4>
         </div>
       </div>
-
       <button id="submit-group-btn" class="action-btn btn-submit" onclick="submitGroup()" style="display:none;">確認送出</button>
     </div>
   </div>
 
-  <!-- 結算結果 Modal -->
   <div id="result-modal" class="modal">
     <div class="modal-content">
       <h2 id="result-badge" style="font-size: 32px; margin-bottom: 10px;">結算中...</h2>
@@ -268,29 +246,10 @@
   </div>
 
   <script>
-    // 3 個題組（每組 2 題/卡片，共 6 題）
     const topicGroups = [
-      {
-        id: 0,
-        cards: [
-          { id: "c1", text: "家事與照顧家人應由全家依能力共同分擔", type: "equal" },
-          { id: "c2", text: "女生數理能力比較差，選文組比較適合", type: "unequal" }
-        ]
-      },
-      {
-        id: 1,
-        cards: [
-          { id: "c3", text: "不論男女，任何人表達難過與情緒都是正常的", type: "equal" },
-          { id: "c4", text: "男性體力較好，不適合擔任幼兒園老師或護理師", type: "unequal" }
-        ]
-      },
-      {
-        id: 2,
-        cards: [
-          { id: "c5", text: "公司升遷與薪資應依工作能力而非性別決定", type: "equal" },
-          { id: "c6", text: "男生的玩具只能選汽車，女生只能選娃娃", type: "unequal" }
-        ]
-      }
+      { id: 0, cards: [{ id: "c1", text: "家事與照顧家人應由全家依能力共同分擔", type: "equal" }, { id: "c2", text: "女生數理能力比較差，選文組比較適合", type: "unequal" }] },
+      { id: 1, cards: [{ id: "c3", text: "不論男女，任何人表達難過與情緒都是正常的", type: "equal" }, { id: "c4", text: "男性體力較好，不適合擔任幼兒園老師或護理師", type: "unequal" }] },
+      { id: 2, cards: [{ id: "c5", text: "公司升遷與薪資應依工作能力而非性別決定", type: "equal" }, { id: "c6", text: "男生的玩具只能選汽車，女生只能選娃娃", type: "unequal" }] }
     ];
 
     let currentGroupIdx = -1;
@@ -301,27 +260,21 @@
     const park = document.getElementById('amusement-park');
     const scoreElem = document.getElementById('score');
 
-    // 在下半部隨機生成 3 朵花朵
     function initFlowers() {
       topicGroups.forEach((group, idx) => {
         const flower = document.createElement('div');
         flower.className = 'flower';
         flower.id = `flower-${idx}`;
-        
-        // 隨機計算位置：Y軸在 55% ~ 80%，X軸在 15% ~ 80%
         const randomTop = Math.floor(Math.random() * 25) + 55;
         const randomLeft = Math.floor(Math.random() * 65) + 15;
-        
         flower.style.top = randomTop + '%';
         flower.style.left = randomLeft + '%';
-
         flower.innerHTML = `<div class="flower-petals"></div><div class="flower-center"></div>`;
         flower.onclick = () => openGroupModal(idx);
         park.appendChild(flower);
       });
     }
 
-    // 開啟題組 Modal
     function openGroupModal(idx) {
       const flowerElem = document.getElementById(`flower-${idx}`);
       if (flowerElem.classList.contains('visited')) return;
@@ -331,14 +284,12 @@
       const pool = document.getElementById('cards-container');
       pool.innerHTML = '';
 
-      // 重置區塊內容
       document.querySelectorAll('.drop-zone').forEach(zone => {
         const h4 = zone.querySelector('h4');
         zone.innerHTML = '';
         zone.appendChild(h4);
       });
 
-      // 生成拖拽卡片
       groupData.cards.forEach(card => {
         const cardElem = document.createElement('div');
         cardElem.className = 'drag-card';
@@ -353,7 +304,6 @@
       document.getElementById('drag-modal').style.display = 'flex';
     }
 
-    // HTML5 Drag and Drop 邏輯
     function allowDrop(e) { e.preventDefault(); }
 
     function drop(e, zoneType) {
@@ -361,47 +311,49 @@
       const cardId = e.dataTransfer.getData('text/plain');
       const cardElem = document.getElementById(cardId);
       let targetZone = e.target;
-      
-      if (!targetZone.classList.contains('drop-zone')) {
-        targetZone = targetZone.closest('.drop-zone');
-      }
+      if (!targetZone.classList.contains('drop-zone')) targetZone = targetZone.closest('.drop-zone');
 
       if (targetZone && cardElem) {
         targetZone.appendChild(cardElem);
         currentAssignments[cardId] = zoneType;
+        spawnParticles(e.clientX, e.clientY);
 
-        // 當兩張卡片都完成歸類時顯示送出按鈕
         if (Object.keys(currentAssignments).length >= 2) {
           document.getElementById('submit-group-btn').style.display = 'inline-block';
         }
       }
     }
 
-    // 檢查目前題組答案
+    function spawnParticles(x, y) {
+      for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        p.style.background = ['#ff70a6', '#ffd670', '#3b82f6', '#10b981'][Math.floor(Math.random()*4)];
+        p.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+        p.style.setProperty('--dy', (Math.random() * 120 - 60) + 'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1500);
+      }
+    }
+
     function submitGroup() {
       document.getElementById('drag-modal').style.display = 'none';
       const groupData = topicGroups[currentGroupIdx];
 
       groupData.cards.forEach(card => {
-        if (currentAssignments[card.id] === card.type) {
-          correctCount++;
-        }
+        if (currentAssignments[card.id] === card.type) correctCount++;
       });
 
       scoreElem.innerText = correctCount;
       document.getElementById(`flower-${currentGroupIdx}`).classList.add('visited');
       completedGroups++;
-
-      // 清空暫存紀錄
       for (let key in currentAssignments) delete currentAssignments[key];
 
-      // 如果 3 個題組（6 題）全數作答結束
-      if (completedGroups === 3) {
-        setTimeout(showFinalEvaluation, 500);
-      }
+      if (completedGroups === 3) setTimeout(showFinalEvaluation, 500);
     }
 
-    // 依據答對題數給予等級評定
     function showFinalEvaluation() {
       const modal = document.getElementById('result-modal');
       const badge = document.getElementById('result-badge');
@@ -416,7 +368,7 @@
         actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
       } else if (correctCount <= 5) {
         badge.innerText = "等級：進步中 👍";
-        msg.innerText = `您答對了 ${correctCount} / 6 題，觀念越來越清晰囉！差一點就滿分了！`;
+        msg.innerText = `您答對了 ${correctCount} / 6 題，觀念越來越清晰囉！`;
         actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
       } else {
         badge.innerText = "等級：平權達人 🏆";
@@ -425,7 +377,6 @@
       }
     }
 
-    // 初始化頁面
     window.onload = initFlowers;
   </script>
 </body>
