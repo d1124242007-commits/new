@@ -40,17 +40,29 @@
     }
     .status-bar {
       display: flex;
-      gap: 15px;
+      gap: 12px;
+      pointer-events: auto;
     }
     .info-box {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: bold;
       color: #2c5282;
       background: rgba(255, 255, 255, 0.95);
-      padding: 8px 18px;
+      padding: 8px 16px;
       border-radius: 20px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
+    .sound-btn {
+      cursor: pointer;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .sound-btn:hover { transform: scale(1.1); }
 
     #amusement-park {
       position: relative;
@@ -59,7 +71,7 @@
       background: linear-gradient(to bottom, #93c5fd 0%, #e0f2fe 45%, #4ade80 100%);
     }
 
-    /* 遊樂設施與背景氣球 */
+    /* 摩天輪 */
     .ferris-wheel {
       position: absolute;
       top: 12%; left: 8%;
@@ -108,6 +120,27 @@
       background: #fff;
       border-radius: 50%;
       z-index: 2;
+    }
+
+    /* 🐢 彩蛋小海龜 */
+    .turtle-easter-egg {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      font-size: 40px;
+      cursor: pointer;
+      animation: turtleWalk 12s linear infinite;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+      transition: transform 0.2s;
+    }
+    .turtle-easter-egg:hover {
+      transform: scale(1.3) rotate(10deg);
+    }
+    @keyframes turtleWalk {
+      0% { left: 10%; transform: scaleX(1); }
+      50% { left: 85%; transform: scaleX(1); }
+      51% { transform: scaleX(-1); }
+      100% { left: 10%; transform: scaleX(-1); }
     }
 
     /* 彈窗 UI */
@@ -198,7 +231,20 @@
     .btn-cert { background: #10b981; }
     .action-btn:hover { transform: scale(1.08); }
 
-    /* 動態粒子與特效 */
+    /* 浮動字體與彩花粒子 */
+    .float-text {
+      position: absolute;
+      font-size: 26px;
+      font-weight: bold;
+      color: #10b981;
+      pointer-events: none;
+      animation: floatUp 1.2s ease-out forwards;
+      z-index: 120;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+    }
     .particle {
       position: absolute;
       width: 10px; height: 10px;
@@ -215,17 +261,21 @@
 <body>
 
   <header>
-    <div class="header-title">SDGs性別平權-情境題 (升級版)</div>
+    <div class="header-title">SDGs性別平權-情境題 (進階版)</div>
     <div class="status-bar">
-      <div class="info-box">⏱ 剩餘時間：<span id="timer" style="color:#e53e3e;">60</span> 秒</div>
-      <div class="info-box">答對題數：<span id="score" style="color:#2b6cb0;">0</span> / 8</div>
+      <button class="sound-btn" onclick="toggleSound()" id="sound-toggle">🔊</button>
+      <div class="info-box">⏱ 時間：<span id="timer" style="color:#e53e3e;">60</span>s</div>
+      <div class="info-box">答對：<span id="score" style="color:#2b6cb0;">0</span> / 8</div>
     </div>
   </header>
 
   <div id="amusement-park">
     <div class="ferris-wheel"></div>
+    <!-- 🐢 彩蛋小海龜 -->
+    <div class="turtle-easter-egg" onclick="triggerTurtleEgg()" title="點擊解救小海龜觸發彩蛋！">🐢</div>
   </div>
 
+  <!-- 拖拽分類 Modal -->
   <div id="drag-modal" class="modal">
     <div class="modal-content">
       <h3 style="color: #1e293b; font-size: 22px;">請將下列情境拖拽至正確區塊中</h3>
@@ -242,6 +292,20 @@
     </div>
   </div>
 
+  <!-- 彩蛋問答 Modal -->
+  <div id="egg-modal" class="modal">
+    <div class="modal-content">
+      <h3 style="color: #d97706; font-size: 24px; margin-bottom: 15px;">🐢 SDGs 生態危機彩蛋題！</h3>
+      <p style="font-size: 18px; color: #334155; margin-bottom: 20px;">
+        海龜被海洋垃圾困住了！回答問題幫助海龜，可獲得額外 <b>+15 秒</b> 倒數獎勵！<br><br>
+        <b>問題：推動 SDGs 5 性別平權，也能促進整體永續社會與經濟進步發展，對嗎？</b>
+      </p>
+      <button class="action-btn btn-cert" onclick="answerEgg(true)">完全正確！✅</button>
+      <button class="action-btn btn-retry" onclick="answerEgg(false)">不對 ❌</button>
+    </div>
+  </div>
+
+  <!-- 結算結果 Modal -->
   <div id="result-modal" class="modal">
     <div class="modal-content">
       <h2 id="result-badge" style="font-size: 34px; margin-bottom: 12px;">結算中...</h2>
@@ -251,7 +315,31 @@
   </div>
 
   <script>
-    // 4 個題組（每組 2 題，共 8 題）
+    // 原生 Web Audio API 音效產生器
+    let soundEnabled = true;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playBeep(freq = 440, type = 'sine', duration = 0.15) {
+      if (!soundEnabled) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-toggle').innerText = soundEnabled ? '🔊' : '🔇';
+    }
+
     const topicGroups = [
       { id: 0, cards: [{ id: "c1", text: "家事與照顧家人應由全家依能力分擔", type: "equal" }, { id: "c2", text: "女生數理能力較差，選文組比較適合", type: "unequal" }] },
       { id: 1, cards: [{ id: "c3", text: "不論男女，任何人表達脆弱都是正常的", type: "equal" }, { id: "c4", text: "男性不適合擔任幼兒園老師或照顧嬰兒", type: "unequal" }] },
@@ -264,20 +352,21 @@
     let completedGroups = 0;
     let timeLeft = 60;
     let timerInterval = null;
+    let comboCount = 0;
+    let eggUsed = false;
     const currentAssignments = {};
 
     const park = document.getElementById('amusement-park');
     const scoreElem = document.getElementById('score');
     const timerElem = document.getElementById('timer');
 
-    // 啟動倒數計時器
     function startTimer() {
       timerInterval = setInterval(() => {
         timeLeft--;
         timerElem.innerText = timeLeft;
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
-          showFinalEvaluation(true); // 時間到強制結算
+          showFinalEvaluation(true);
         }
       }, 1000);
     }
@@ -299,6 +388,7 @@
     }
 
     function openGroupModal(idx) {
+      playBeep(523, 'sine', 0.1);
       const flowerElem = document.getElementById(`flower-${idx}`);
       if (flowerElem.classList.contains('visited') || timeLeft <= 0) return;
 
@@ -339,12 +429,40 @@
       if (targetZone && cardElem) {
         targetZone.appendChild(cardElem);
         currentAssignments[cardId] = zoneType;
+        playBeep(659, 'triangle', 0.12);
         spawnParticles(e.clientX, e.clientY);
 
         if (Object.keys(currentAssignments).length >= 2) {
           document.getElementById('submit-group-btn').style.display = 'inline-block';
         }
       }
+    }
+
+    function triggerTurtleEgg() {
+      if (eggUsed) return;
+      playBeep(880, 'sine', 0.2);
+      document.getElementById('egg-modal').style.display = 'flex';
+    }
+
+    function answerEgg(isCorrect) {
+      document.getElementById('egg-modal').style.display = 'none';
+      eggUsed = true;
+      if (isCorrect) {
+        timeLeft += 15;
+        timerElem.innerText = timeLeft;
+        playBeep(1046, 'sine', 0.3);
+        showFloatText("⏱ 時間 +15 秒！", window.innerWidth/2, window.innerHeight/2);
+      }
+    }
+
+    function showFloatText(text, x, y) {
+      const ft = document.createElement('div');
+      ft.className = 'float-text';
+      ft.innerText = text;
+      ft.style.left = x + 'px';
+      ft.style.top = y + 'px';
+      document.body.appendChild(ft);
+      setTimeout(() => ft.remove(), 1200);
     }
 
     function spawnParticles(x, y) {
@@ -364,10 +482,26 @@
     function submitGroup() {
       document.getElementById('drag-modal').style.display = 'none';
       const groupData = topicGroups[currentGroupIdx];
+      let groupCorrect = true;
 
       groupData.cards.forEach(card => {
-        if (currentAssignments[card.id] === card.type) correctCount++;
+        if (currentAssignments[card.id] === card.type) {
+          correctCount++;
+        } else {
+          groupCorrect = false;
+        }
       });
+
+      if (groupCorrect) {
+        comboCount++;
+        playBeep(784, 'sine', 0.25);
+        if (comboCount >= 2) {
+          showFloatText(`🔥 Combo x${comboCount}!`, window.innerWidth/2 - 50, 100);
+        }
+      } else {
+        comboCount = 0;
+        playBeep(220, 'sawtooth', 0.2);
+      }
 
       scoreElem.innerText = correctCount;
       document.getElementById(`flower-${currentGroupIdx}`).classList.add('visited');
@@ -391,7 +525,7 @@
 
       if (isTimeOut) {
         badge.innerText = "時間到！⏰";
-        msg.innerText = `很遺憾，時間已結束！您答對了 ${correctCount} / 8 題，再試一次挑戰更快的速度吧！`;
+        msg.innerText = `時間已結束！您答對了 ${correctCount} / 8 題，再試一次挑戰更快的速度吧！`;
         actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
       } else if (correctCount <= 5) {
         badge.innerText = "等級：再加油 💡";
@@ -403,7 +537,7 @@
         actionArea.innerHTML = `<button class="action-btn btn-retry" onclick="location.reload()">再次挑戰</button>`;
       } else {
         badge.innerText = "等級：平權達人 🏆";
-        msg.innerText = `完美通關！您在限時內全數答對 8 題！成功榮獲「SDGs 性別平權小達人」稱號！`;
+        msg.innerText = `完美通關！您全數答對 8 題！成功榮獲「SDGs 性別平權小達人」稱號！`;
         actionArea.innerHTML = `<a href="certificate.html" class="action-btn btn-cert">下載學習證書</a>`;
       }
     }
